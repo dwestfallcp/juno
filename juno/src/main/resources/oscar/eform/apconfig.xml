@@ -1,0 +1,2422 @@
+<eformap-config>
+
+	<!-- Date information -->
+	<databaseap>
+		<ap-name>today</ap-name>
+		<ap-sql>SELECT curdate()</ap-sql>
+		<ap-output>${curdate()}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>today2</ap-name>
+		<ap-sql>SELECT DATE_FORMAT(curdate(), "%d-%m-%Y") as date</ap-sql>
+		<ap-output>${date}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>today3</ap-name>
+		<ap-sql>SELECT DATE_FORMAT(curdate(), "%m-%d-%Y") as date</ap-sql>
+		<ap-output>${date}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>time</ap-name>
+		<ap-sql>SELECT curtime()</ap-sql>
+		<ap-output>${curtime()}</ap-output>
+	</databaseap>
+
+	<!-- Current appointment information  -->
+	<databaseap>
+		<ap-name>appt_date</ap-name>
+		<ap-sql>SELECT appointment_date from appointment WHERE
+			appointment_no=${appt_no}</ap-sql>
+		<ap-output>${appointment_date}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_date2</ap-name>
+		<ap-sql>SELECT DATE_FORMAT(appointment_date, "%d-%m-%Y") AS appointment_date
+			FROM appointment
+			WHERE appointment_no=${appt_no}</ap-sql>
+		<ap-output>${appointment_date}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_date3</ap-name>
+		<ap-sql>SELECT DATE_FORMAT(appointment_date, "%m-%d-%Y") AS appointment_date
+			FROM appointment
+			WHERE appointment_no=${appt_no}</ap-sql>
+		<ap-output>${appointment_date}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_start_time</ap-name>
+		<ap-sql>
+			SELECT DATE_FORMAT(start_time, '%H:%i') AS start_time
+			FROM appointment
+			WHERE appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${start_time}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_end_time</ap-name>
+		<ap-sql>
+			<!-- Here we add a minute to the appointment end time because oscar stores appointments with the end time
+			one minute lower to avoid formatting issues in the main chart.  For example, a 15 minute appointment at
+			15:00 will be stored from 15:00 - 15:14.  We round the seconds down to zero first, in case the data came from
+			an import which does something differently like storing the example appointment until 15:14:59 instead-->
+			SELECT DATE_FORMAT(ADDTIME(DATE_FORMAT(end_time, '%H:%i:00'), '00:01:00'), '%H:%i') AS rounded_endtime_plus_1_minute
+			FROM appointment
+			WHERE appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${rounded_endtime_plus_1_minute}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_location</ap-name>
+		<ap-sql>
+			SELECT location
+			FROM appointment
+			WHERE appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${location}</ap-output>
+	</databaseap>
+
+	<!-- Next booked appointment information, relative to the current datetime -->
+	<databaseap>
+		<ap-name>next_appt_date</ap-name>
+		<ap-sql>
+			SELECT appointment_date, DATE_FORMAT(start_time, '%H:%i') AS start_time
+			FROM appointment
+			WHERE demographic_no = ${demographic}
+				AND ADDTIME(appointment_date, start_time) >= NOW()
+				AND `status` NOT IN('C', 'N', 'NS')
+			ORDER BY appointment_date asc, start_time asc
+			LIMIT 1
+		</ap-sql>
+		<ap-output>${appointment_date}, ${start_time}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>next_appt_time</ap-name>
+		<ap-sql>
+			SELECT DATE_FORMAT(start_time, '%H:%i') AS start_time
+			FROM appointment
+			WHERE demographic_no = ${demographic}
+				AND ADDTIME(appointment_date, start_time) >= NOW()
+				AND `status` NOT IN('C', 'N', 'NS')
+			ORDER BY appointment_date asc, start_time asc
+			LIMIT 1
+		</ap-sql>
+		<ap-output>${start_time}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>nextf_appt_date</ap-name>
+		<ap-sql>
+			SELECT DATE_FORMAT(appointment_date, '%Y-%b-%d' ) AS nextf_appt_date
+			FROM appointment
+			WHERE demographic_no = ${demographic}
+				AND ADDTIME(appointment_date, start_time) >= NOW()
+				AND status NOT IN ('C', 'N', 'NS')
+			ORDER BY appointment_date asc, start_time asc
+			LIMIT 1
+		</ap-sql>
+		<ap-output>${nextf_appt_date}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>next_appt_location</ap-name>
+		<ap-sql>
+			SELECT location
+			FROM appointment
+			WHERE demographic_no = ${demographic}
+				AND ADDTIME(appointment_date, start_time) >= NOW()
+				AND status NOT IN ('C', 'N', 'NS')
+			ORDER BY appointment_date asc, start_time asc
+			LIMIT 1;
+		</ap-sql>
+		<ap-output>${location}</ap-output>
+	</databaseap>
+
+	<!-- Current eform information -->
+	<databaseap>
+		<ap-name>current_form_id</ap-name>
+		<ap-sql>SELECT '${fid}' AS fid</ap-sql>
+		<ap-output>${fid}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_form_data_id</ap-name>
+		<ap-sql>SELECT '${fdid}' AS fdid</ap-sql>
+		<ap-output>${fdid}</ap-output>
+	</databaseap>
+
+	<!-- Current user information -->
+	<databaseap>
+		<ap-name>current_user</ap-name>
+		<ap-sql>SELECT provider.first_name, provider.last_name FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_userF</ap-name>
+		<ap-sql>SELECT provider.first_name FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_userL</ap-name>
+		<ap-sql>SELECT provider.last_name FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_fname_lname</ap-name>
+		<ap-sql>SELECT provider.first_name, provider.last_name FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${first_name} ${last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_ohip_no</ap-name>
+		<ap-sql>SELECT provider.ohip_no FROM provider WHERE
+			provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${ohip_no}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_specialty</ap-name>
+		<ap-sql>SELECT provider.specialty FROM provider WHERE
+			provider.provider_no='${loggedInProvider}'</ap-sql>
+		<ap-output>${specialty}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_specialty_code</ap-name>
+		<ap-sql>SELECT
+			MID( comments,
+			INSTR(comments,'&lt;xml_p_specialty_code&gt;')+22,
+			INSTR(comments,'&lt;/xml_p_specialty_code&gt;')-INSTR(comments,'&lt;xml_p_specialty_code&gt;')-22
+			) AS specialty_code
+			FROM provider WHERE provider_no='${loggedInProvider}'
+		</ap-sql>
+		<ap-output>${specialty_code}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_cpsid</ap-name>
+		<ap-sql>SELECT provider.practitionerNo FROM provider WHERE
+			provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${practitionerNo}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_id</ap-name>
+		<ap-sql>SELECT '${loggedInProvider}' AS providerId</ap-sql>
+		<ap-output>${providerId}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_signature</ap-name>
+		<ap-sql>SELECT providerExt.signature FROM providerExt WHERE
+			providerExt.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${signature}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user</ap-name>
+		<ap-sql>SELECT provider.first_name, provider.last_name FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user_address</ap-name>
+		<ap-sql>SELECT provider.address FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${address}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user_fax</ap-name>
+		<ap-sql>SELECT ExtractValue(provider.comments, '/xml_p_fax') AS fax FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_email</ap-name>
+		<ap-sql>SELECT provider.email FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${email}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user_work_phone</ap-name>
+		<ap-sql>SELECT provider.work_phone FROM provider
+			WHERE provider.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${work_phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user_roles</ap-name>
+		<ap-sql>SELECT group_concat(role_name) as roles FROM secUserRole where
+			provider_no='${loggedInProvider}'</ap-sql>
+		<ap-output>${roles}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user_type</ap-name>
+		<ap-sql>SELECT provider_type FROM provider where
+			provider_no='${loggedInProvider}'</ap-sql>
+		<ap-output>${provider_type}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user_id</ap-name>
+		<ap-sql>SELECT '${loggedInProvider}' as loggedInProviderId </ap-sql>
+		<ap-output>${loggedInProviderId}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_takno</ap-name>
+		<ap-sql>SELECT p.alberta_tak_no as takno FROM provider p WHERE
+			p.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${takno}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_cc_provider_id</ap-name>
+		<ap-sql>SELECT p.alberta_connect_care_id as ccid FROM provider p WHERE
+			p.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${ccid}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_user_lifelabs_id </ap-name>
+		<ap-sql>SELECT p.ontario_lifelabs_id as llid FROM provider p WHERE
+			p.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${llid}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>current_logged_in_user_takno</ap-name>
+		<ap-sql>SELECT p.alberta_tak_no as takno FROM provider p WHERE
+			p.provider_no='${loggedInProvider}' </ap-sql>
+		<ap-output>${takno}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_takno</ap-name>
+		<ap-sql>SELECT p.alberta_tak_no AS takno FROM provider p JOIN appointment a ON p.provider_no=a.provider_no
+			WHERE a.appointment_no='${appt_no}'
+		</ap-sql>
+		<ap-output>${takno}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_cc_provider_id</ap-name>
+		<ap-sql>SELECT p.alberta_connect_care_id AS ccid FROM provider p JOIN appointment a ON p.provider_no=a.provider_no
+			WHERE a.appointment_no='${appt_no}'
+		</ap-sql>
+		<ap-output>${ccid}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_lifelabs_id</ap-name>
+		<ap-sql>SELECT p.ontario_lifelabs_id AS llid FROM provider p JOIN appointment a ON p.provider_no=a.provider_no
+			WHERE a.appointment_no='${appt_no}'
+		</ap-sql>
+		<ap-output>${llid}</ap-output>
+	</databaseap>
+
+	<!-- Patient demographic information -->
+	<databaseap>
+		<ap-name>patient_name</ap-name>
+		<ap-sql>SELECT * FROM demographic WHERE demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>first_last_name</ap-name>
+		<ap-sql>SELECT CONCAT(UPPER(SUBSTRING(first_name, 1, 1)),
+			LOWER(SUBSTRING(first_name FROM 2))) AS first_name,
+			CONCAT(UPPER(SUBSTRING(last_name, 1, 1)), LOWER(SUBSTRING(last_name
+			FROM 2))) AS last_name FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${first_name} ${last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>patient_nameL</ap-name>
+		<ap-sql>SELECT last_name FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${last_name}</ap-output>
+		<ap-insql>UPDATE demographic SET last_name='${value}' WHERE
+			demographic_no=${demographic}</ap-insql>
+		<archive>demographic</archive>
+	</databaseap>
+	<databaseap>
+		<ap-name>patient_nameF</ap-name>
+		<ap-sql>SELECT first_name FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${first_name}</ap-output>
+		<ap-insql>UPDATE demographic SET first_name='${value}' WHERE
+			demographic_no=${demographic}</ap-insql>
+		<archive>demographic</archive>
+	</databaseap>
+	<databaseap>
+		<ap-name>patient_alias</ap-name>
+		<ap-sql>SELECT alias FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${alias}</ap-output>
+		<ap-insql>UPDATE demographic SET alias='${value}' WHERE
+			demographic_no=${demographic}</ap-insql>
+		<archive>demographic</archive>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>patient_id</ap-name>
+		<ap-sql>SELECT '${demographic}' AS demographicId</ap-sql>
+		<ap-output>${demographicId}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>label</ap-name>
+		<ap-sql>SELECT * FROM demographic WHERE demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${last_name}, ${first_name}\n${address}, ${city}, ${province} ${postal} \nTel:${phone}(H) ${phone2}(W)\n${date_of_birth}/${month_of_birth}/${year_of_birth}(${sex})HIN:${hin}${ver}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>address</ap-name>
+		<ap-sql>SELECT * FROM demographic WHERE demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${address} \n${city}, ${province}, ${postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>addressline</ap-name>
+		<ap-sql>SELECT address, city, province, postal FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${address}, ${city}, ${province}, ${postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>address_street_number_and_name</ap-name>
+		<ap-sql>SELECT address, city, province, postal FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${address}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>province</ap-name>
+		<ap-sql>SELECT province FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${province}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>city</ap-name>
+		<ap-sql>SELECT city FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${city}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>postal</ap-name>
+		<ap-sql>SELECT postal FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dob</ap-name>
+		<ap-sql>SELECT date_of_birth, month_of_birth, year_of_birth FROM
+			demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${date_of_birth}/${month_of_birth}/${year_of_birth} (d/m/y)
+		</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dobc</ap-name>
+		<ap-sql>SELECT date_of_birth, month_of_birth, year_of_birth FROM
+			demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${date_of_birth}/${month_of_birth}/${year_of_birth}
+		</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dobc2</ap-name>
+		<ap-sql>SELECT date_of_birth, month_of_birth, year_of_birth FROM
+			demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${year_of_birth}/${month_of_birth}/${date_of_birth}
+		</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dobc3</ap-name>
+		<ap-sql>SELECT date_of_birth, month_of_birth, year_of_birth FROM
+			demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${month_of_birth}/${date_of_birth}/${year_of_birth}
+		</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dob_year</ap-name>
+		<ap-sql>SELECT year_of_birth FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${year_of_birth}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dob_month</ap-name>
+		<ap-sql>SELECT month_of_birth FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${month_of_birth}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dob_day</ap-name>
+		<ap-sql>SELECT date_of_birth FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${date_of_birth}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>NameAddress</ap-name>
+		<ap-sql>SELECT * FROM demographic WHERE demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${last_name}, ${first_name} \n${address}
+			\n${city},${province} ${postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>hin</ap-name>
+		<ap-sql>SELECT hin, ver FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${hin} ${ver}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>hinc</ap-name>
+		<ap-sql>SELECT hin FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${hin}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>hinversion</ap-name>
+		<ap-sql>SELECT ver FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${ver}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>hc_type</ap-name>
+		<ap-sql>SELECT hc_type FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${hc_type}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>hc_renew_date</ap-name>
+		<ap-sql>SELECT hc_renew_date FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${hc_renew_date}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>chartno</ap-name>
+		<ap-sql>SELECT chart_no FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${chart_no}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>phone</ap-name>
+		<ap-sql>SELECT phone FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>phone2</ap-name>
+		<ap-sql>SELECT phone2 FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${phone2}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>cell</ap-name>
+		<ap-sql>SELECT value FROM demographicExt WHERE
+			demographic_no=${demographic} and key_val ='demo_cell';</ap-sql>
+		<ap-output>${value}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>phone_extension</ap-name>
+		<ap-sql>SELECT value FROM demographicExt WHERE
+			demographic_no=${demographic} and key_val ='hPhoneExt';</ap-sql>
+		<ap-output>${value}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>phone2_extension</ap-name>
+		<ap-sql>SELECT value FROM demographicExt WHERE
+			demographic_no=${demographic} and key_val ='wPhoneExt';</ap-sql>
+		<ap-output>${value}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>age</ap-name>
+		<ap-sql>SELECT
+			(YEAR(CURRENT_DATE)-YEAR(DATE_FORMAT(CONCAT((demographic.year_of_birth),
+			'-', (demographic.month_of_birth), '-',
+			(demographic.date_of_birth)),'%Y-%m-%d')))-(RIGHT(CURRENT_DATE, 5)
+			&lt; RIGHT(DATE_FORMAT(CONCAT((demographic.year_of_birth), '-',
+			(demographic.month_of_birth), '-',
+			(demographic.date_of_birth)),'%Y-%m-%d'),5)) AS 'age' FROM
+			demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${age}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>age_in_months</ap-name>
+		<ap-sql>SELECT (MONTH(CURDATE()) -
+			MONTH(DATE_FORMAT(CONCAT((demographic.year_of_birth), '-',
+			(demographic.month_of_birth), '-',
+			(demographic.date_of_birth)),'%Y-%m-%d'))) - IF(DAYOFMONTH(CURDATE(
+			)) &lt; DAYOFMONTH(DATE_FORMAT(CONCAT((demographic.year_of_birth),
+			'-', (demographic.month_of_birth), '-',
+			(demographic.date_of_birth)),'%Y-%m-%d')),1,0) +
+			(12*(YEAR(CURRENT_DATE)-YEAR(DATE_FORMAT(CONCAT((demographic.year_of_birth),
+			'-', (demographic.month_of_birth), '-',
+			(demographic.date_of_birth)),'%Y-%m-%d')))-(RIGHT(CURRENT_DATE, 5)
+			&lt; RIGHT(DATE_FORMAT(CONCAT((demographic.year_of_birth), '-',
+			(demographic.month_of_birth), '-',
+			(demographic.date_of_birth)),'%Y-%m-%d'),5))) AS 'age' FROM
+			demographic demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${age}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>ageComplex</ap-name>
+		<ap-sql>SELECT
+			CASE
+			  WHEN (@bdate >= DATE(NOW() - INTERVAL 2 DAY)) THEN 'newborn'
+			  WHEN (@bdate >= DATE(NOW() - INTERVAL 7 DAY)) THEN CONCAT(TIMESTAMPDIFF(DAY, @bdate, CURRENT_DATE),' day old')
+			  WHEN (@bdate >= DATE(NOW() - INTERVAL 4 WEEK)) THEN CONCAT(TIMESTAMPDIFF(WEEK, @bdate, CURRENT_DATE),' week old')
+			  WHEN (@bdate >= DATE(NOW() - INTERVAL 11 MONTH)) THEN CONCAT(TIMESTAMPDIFF(MONTH, @bdate, CURRENT_DATE),' month old')
+			  ELSE CONCAT(TIMESTAMPDIFF(YEAR, @bdate, CURRENT_DATE), ' year old')
+			END AS ageComplex
+			  FROM (SELECT @bdate:= DATE_FORMAT(CONCAT((demographic.year_of_birth), '-', (demographic.month_of_birth), '-', (demographic.date_of_birth)),'%Y-%m-%d')
+			  AS birthdate FROM demographic WHERE demographic_no=${demographic}) as t</ap-sql>
+		<ap-output>${ageComplex}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>ageComplex2</ap-name>
+		<ap-sql>SELECT
+			(IF ( (TO_DAYS(CURRENT_DATE) - TO_DAYS(@bdate))&lt; 365,<!--IF Less than 
+				one year Old -->
+			(IF ((TO_DAYS(CURRENT_DATE)-TO_DAYS(@bdate))&lt; 31,<!-- {IF less than 
+				31 days old -->
+			CONCAT((TO_DAYS(CURRENT_DATE)-TO_DAYS(@bdate)), ' days old'),<!-- {Print 
+				Age in Days} -->
+			(IF ((DAY(CURRENT_DATE)-DAY(@bdate))&lt;0,<!-- ELSE { print in months 
+				and week}} -->
+			CONCAT((((YEAR(CURRENT_DATE) - 1) * 12 + MONTH(CURRENT_DATE)-1) -
+			((YEAR(@bdate) - 1) * 12 + MONTH(@bdate))) - (MID(@bdate, 9, 2) &lt;
+			MID(@bdate, 9, 2)),' months ',FLOOR((DAY(CURRENT_DATE)/7)),' weeks
+			old'),
+			CONCAT((((YEAR(CURRENT_DATE) - 1) * 12 + MONTH(CURRENT_DATE)) - ((YEAR(@bdate) - 1) * 12 +
+			MONTH(@bdate))) - (MID(@bdate, 9, 2) &lt; MID(@bdate, 9, 2)),' month
+			old ',FLOOR(((DAY(CURRENT_DATE)-DAY(@bdate))/7)),' weeks old'))))),
+			CONCAT(TIMESTAMPDIFF(YEAR,@bdate,CURRENT_DATE)," years
+			",MOD(TIMESTAMPDIFF(MONTH,@bdate,CURRENT_DATE),12)," Months"))) as
+			ageComplex2 from (SELECT @bdate:=
+			DATE_FORMAT(CONCAT((demographic.year_of_birth), '-',
+			(demographic.month_of_birth), '-',
+			(demographic.date_of_birth)),'%Y-%m-%d') AS birthdate FROM
+			demographic WHERE demographic_no=${demographic}) as t
+		</ap-sql>
+		<ap-output>${ageComplex2}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>sex</ap-name>
+		<ap-sql>SELECT sex FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${sex}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>sin</ap-name>
+		<ap-sql>SELECT sin FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${sin}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>name_of_mother</ap-name>
+		<ap-sql>SELECT name_of_mother FROM demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${name_of_mother}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>name_of_father</ap-name>
+		<ap-sql>SELECT name_of_father FROM demographic WHERE demographic_no=${demographic}</ap-sql>
+		<ap-output>${name_of_father}</ap-output>
+	</databaseap>
+
+	<!-- OHSUPPORT-2712 licensed Marijuana Producers (requires custom database tables)-->
+	<databaseap>
+		<ap-name>licensed_producer_by_demographic</ap-name>
+		<ap-sql>SELECT lp.producer_name AS producer_name FROM demographic_licensed_producer d JOIN licensed_producer lp ON (d.producer_id=lp.producer_id) where d.demographic_no=${demographic}</ap-sql>
+		<ap-output>${producer_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>licensed_producer2_by_demographic</ap-name>
+		<ap-sql>SELECT lp.producer_name AS producer_name FROM demographic_licensed_producer d JOIN licensed_producer lp ON (d.producer_id2=lp.producer_id) where d.demographic_no=${demographic}</ap-sql>
+		<ap-output>${producer_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>licensed_producer_address_name</ap-name>
+		<ap-sql>SELECT pa.display_name as address_name
+			FROM demographic_licensed_producer d JOIN licensed_producer_address pa ON (d.address_id=pa.address_id) where d.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${address_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>licensed_producer_address_province</ap-name>
+		<ap-sql>SELECT pa.province as province
+			FROM demographic_licensed_producer d JOIN licensed_producer_address pa ON (d.address_id=pa.address_id) where d.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${province}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>licensed_producer_address_name_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(pa.display_name SEPARATOR ';') as list
+			FROM licensed_producer_address pa
+		</ap-sql>
+		<ap-output>${list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>licensed_producer_full_address</ap-name>
+		<ap-sql>SELECT pa.address as address, pa.city as city, pa.province as province, pa.postal as postal
+			FROM demographic_licensed_producer d JOIN licensed_producer_address pa ON (d.address_id=pa.address_id) where d.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${address}\n${city}, ${province}, ${postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>licensed_producer_full_address_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(pa.address, '\n', pa.city, ', ', pa.province, ', ', pa.postal SEPARATOR ';') AS list
+			FROM licensed_producer_address pa
+		</ap-sql>
+		<ap-output>${list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>licensed_producer_name_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(producer_name ORDER BY producer_name SEPARATOR ';' ) as list FROM licensed_producer</ap-sql>
+		<ap-output>${list}</ap-output>
+	</databaseap>
+
+	<!-- Multisite Information -->
+	<databaseap>
+		<ap-name>multisite_name_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(REPLACE(name,';','') SEPARATOR ';') AS
+			name_list FROM site WHERE status=1 ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${name_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_fax_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(REPLACE(fax,';','') SEPARATOR ';') AS
+			fax_list FROM site WHERE status=1 ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${fax_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_phone_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(REPLACE(phone,';','') SEPARATOR ';') AS
+			phone_list FROM site WHERE status=1 ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${phone_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_full_address_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(address,';',''), ' ',
+			REPLACE(city,';',''), ' ',
+			REPLACE(province,';',''), ' ',
+			REPLACE(postal,';','')
+			SEPARATOR ';') AS address_list
+			FROM site
+			WHERE status=1
+			ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${address_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_address_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(address,';','')
+			SEPARATOR ';') AS address_list
+			FROM site
+			WHERE status=1
+			ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${address_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_city_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(city,';','')
+			SEPARATOR ';') AS city_list
+			FROM site
+			WHERE status=1
+			ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${city_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_province_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(province,';','')
+			SEPARATOR ';') AS province_list
+			FROM site
+			WHERE status=1
+			ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${province_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_postal_list</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(postal,';','')
+			SEPARATOR ';') AS postal_list
+			FROM site
+			WHERE status=1
+			ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${postal_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_cc_lab_id</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(alberta_connect_care_lab_id,';','')
+			SEPARATOR ';') AS lab_id_list
+			FROM site
+			WHERE status=1
+			ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${lab_id_list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>multisite_cc_department_id</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(alberta_connect_care_department_id,';','')
+			SEPARATOR ';') AS department_id_list
+			FROM site
+			WHERE status=1
+			ORDER BY site_id;
+		</ap-sql>
+		<ap-output>${department_id_list}</ap-output>
+	</databaseap>
+
+	<!-- Patient medical information -->
+	<databaseap>
+		<ap-name>medical_history</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(s1.note SEPARATOR ', ') AS medicalHistories
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+					MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='MedHistory' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 ON n1.uuid = n2.uuid AND (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${medicalHistories}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>other_medications_history</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(s1.note SEPARATOR ', ') AS omeds
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='OMeds' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 ON n1.uuid = n2.uuid AND (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${omeds}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>social_family_history</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(s1.note SEPARATOR ', ') AS socialHistories
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='SocHistory' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 ON n1.uuid = n2.uuid AND (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${socialHistories}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>ongoingconcerns</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(s1.note SEPARATOR ', ') AS concerns
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='Concerns' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 ON n1.uuid = n2.uuid AND (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${concerns}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>reminders</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(s1.note SEPARATOR ', ') AS reminders
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='Reminders' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 ON n1.uuid = n2.uuid AND (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${reminders}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>risk_factors</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(s1.note SEPARATOR ', ') AS risk_factors
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='riskfactors' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 on n1.uuid = n2.uuid and (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${risk_factors}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>family_history</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(s1.note SEPARATOR ', ') AS family_history
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='famhistory' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 on n1.uuid = n2.uuid and (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${family_history}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>risk_factors_json</ap-name>
+		<ap-sql>
+			SELECT s1.note AS note
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='riskfactors' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 on n1.uuid = n2.uuid and (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${note}</ap-output>
+		<ap-json-output>true</ap-json-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>family_history_json</ap-name>
+		<ap-sql>
+			SELECT s1.note AS note
+			FROM casemgmt_note s1
+			JOIN (
+				SELECT
+				MAX(cn.note_id) as note_id
+				FROM casemgmt_note cn, casemgmt_issue_notes cin
+				WHERE cn.note_id = cin.note_id
+				AND cin.id = (
+					SELECT id FROM casemgmt_issue
+					WHERE demographic_no = ${demographic}
+					AND issue_id = (
+						SELECT issue_id FROM issue WHERE code='famhistory' LIMIT 1
+					) LIMIT 1
+				) GROUP BY cn.uuid
+			) s2 ON s1.note_id = s2.note_id
+			JOIN (
+				SELECT n1.uuid, n1.update_date
+				FROM casemgmt_note n1
+				LEFT JOIN casemgmt_note n2 on n1.uuid = n2.uuid and (n1.note_id &lt; n2.note_id)
+				AND n2.demographic_no=${demographic}
+				WHERE n2.note_id IS NULL
+				AND n1.demographic_no=${demographic}
+			) note_filter ON s1.uuid = note_filter.uuid
+			WHERE note_filter.update_date &lt;= s1.update_date
+			AND s1.demographic_no=${demographic}
+			AND s1.archived=0;
+		</ap-sql>
+		<ap-output>${note}</ap-output>
+		<ap-json-output>true</ap-json-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>dxregistry</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(icd9.description SEPARATOR ', ') AS dxlist
+			FROM icd9, dxresearch WHERE status='A' AND coding_system='icd9' AND
+			icd9.icd9=dxresearch.dxresearch_code AND
+			demographic_no=${demographic};</ap-sql>
+		<ap-output>${dxlist}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>OHIPdxCode</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(DISTINCT billing_on_item.dx) AS ohipdxc
+			FROM billing_on_item, billing_on_cheader1 WHERE
+			billing_on_cheader1.id=billing_on_item.ch1_id AND
+			billing_on_cheader1.demographic_no=${demographic};</ap-sql>
+		<ap-output>${ohipdxc}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>allergies_des</ap-name>
+		<ap-sql>SELECT IF ((SELECT COUNT(*) FROM allergies, demographic WHERE
+			( demographic.demographic_no=${demographic} AND
+			allergies.demographic_no=demographic.demographic_no AND
+			allergies.archived=1))>0,
+			CONCAT((SELECT GROUP_CONCAT(allergies.DESCRIPTION SEPARATOR ', ') FROM allergies,
+			demographic WHERE demographic.demographic_no=${demographic} AND
+			allergies.demographic_no=demographic.demographic_no AND
+			allergies.archived != 1),' \n','archived allergies:',(SELECT
+			GROUP_CONCAT(allergies.DESCRIPTION SEPARATOR ', ') FROM allergies,
+			demographic WHERE demographic.demographic_no=${demographic} AND
+			allergies.demographic_no=demographic.demographic_no AND
+			allergies.archived = 1)),
+			(SELECT GROUP_CONCAT(allergies.DESCRIPTION SEPARATOR ', ') FROM allergies,
+			demographic WHERE demographic.demographic_no=${demographic} AND
+			allergies.demographic_no=demographic.demographic_no AND
+			allergies.archived != 1))
+			as allergy
+		</ap-sql>
+		<ap-output>${allergy}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>allergies_des_no_archived</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(allergies.DESCRIPTION SEPARATOR ', ')as
+			allergy FROM allergies, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			allergies.demographic_no=demographic.demographic_no AND
+			allergies.archived != 1
+		</ap-sql>
+		<ap-output>${allergy}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>recent_rx</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(CONCAT(p.date_prescribed,'
+			',SUBSTRING_INDEX(p.textView, '\n\n', -1)),' \n' ORDER BY
+			p.date_prescribed DESC SEPARATOR '') AS rx FROM prescription p WHERE
+			p.demographic_no=${demographic} </ap-sql>
+		<ap-output>${rx}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>today_rx</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(CONCAT(p.date_prescribed,'
+			',SUBSTRING_INDEX(p.textView, '\n\n', -1)),' \n' ORDER BY
+			p.date_prescribed DESC SEPARATOR '') AS rx FROM prescription p WHERE
+			p.demographic_no=${demographic} and p.date_prescribed=LEFT(now(),10)
+		</ap-sql>
+		<ap-output>${rx}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>druglist_generic</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(DISTINCT
+            IF (LENGTH(d.GN) &gt; 4,
+                GN,
+                d.customName),
+            IF (d.takemax &gt; d.takemin,
+                CONCAT(' ',d.takemin,'-',d.takemax, ' '),
+                IF (d.takemin != 0,
+                    CONCAT(' ',d.takemin,' '),
+                    CONCAT(' '))),
+			COALESCE(d.freqcode, ''),
+            IF (d.prn=1,
+                ' prn',
+                '')
+            ORDER BY d.rx_date DESC
+            SEPARATOR ' \n' ) AS rxlist
+			FROM drugs d
+            WHERE d.demographic_no=${demographic}
+            AND d.end_date &gt; DATE_ADD(CURDATE(), INTERVAL -1 WEEK)
+            AND d.archived='0';
+        </ap-sql>
+		<ap-output>${rxlist}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>druglist_trade</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(DISTINCT
+            IF (LENGTH(d.GN) &gt; 4,
+                BN,
+                d.customName),
+            IF (d.takemax &gt; d.takemin,
+                CONCAT(' ',d.takemin,'-',d.takemax,' '),
+                IF (d.takemin != 0,
+                    CONCAT(' ',d.takemin,' '),
+                    CONCAT(' '))),
+			COALESCE(d.freqcode, ''),
+            IF (d.prn=1,
+                ' prn',
+                '')
+            ORDER BY d.rx_date DESC
+            SEPARATOR ' \n' ) AS rxlist
+			FROM drugs d
+            WHERE d.demographic_no=${demographic}
+            AND d.end_date &gt; DATE_ADD(CURDATE(), INTERVAL -1 WEEK)
+            AND d.archived='0';
+        </ap-sql>
+		<ap-output>${rxlist}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>druglist_line</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(DISTINCT
+            IF (LENGTH(d.GN) &gt; 4,
+                CONCAT(UCASE(SUBSTRING(d.BN, 1, 1)),
+                LOWER(SUBSTRING(d.BN, 2))),d.customName),
+            IF (d.takemax > d.takemin,
+                CONCAT(' ',d.takemin,'-',d.takemax,' '),
+                IF (d.takemin != 0,
+                    CONCAT(' ',d.takemin,' '),
+                    CONCAT(' '))),
+            COALESCE(d.freqcode, ''),
+            IF (d.prn=1,
+                ' prn',
+                '')
+            ORDER BY d.rx_date DESC
+            SEPARATOR ', ' ) AS rxlist
+            FROM drugs d
+            WHERE d.demographic_no=${demographic}
+            AND d.end_date &gt; DATE_ADD(CURDATE(), INTERVAL -1 WEEK)
+            AND d.archived='0';
+        </ap-sql>
+		<ap-output>${rxlist}</ap-output>
+	</databaseap>
+	<databaseap>
+		<!-- get the latest note uuid by observation_date. Then the latest revision 
+			by update_date -->
+		<ap-name>latest_echart_note</ap-name>
+		<ap-sql>SELECT cmn.note AS note FROM casemgmt_note cmn
+			JOIN (SELECT DISTINCT a.uuid FROM casemgmt_note a
+			WHERE a.demographic_no=${demographic}
+			AND a.include_issue_innote='0'
+			ORDER BY a.observation_date DESC LIMIT 1)
+			AS A ON (cmn.uuid = A.uuid)
+			WHERE cmn.demographic_no=${demographic}
+			AND include_issue_innote='0'
+			ORDER BY update_date
+			DESC LIMIT 1;
+		</ap-sql>
+		<ap-output>${note}</ap-output>
+	</databaseap>
+
+	<!-- Prenatal information -->
+	<databaseap>
+		<ap-name>onGTPAL</ap-name>
+		<ap-sql>SELECT CONCAT('G',c_gravida,' T', c_term,' P' , c_prem,' A',
+			c_abort ,' L', c_living) as onGTPAL FROM formONAREnhancedRecord f
+			where demographic_no=${demographic} order by ID desc limit 1;
+		</ap-sql>
+		<ap-output>${onGTPAL}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>onEDB</ap-name>
+		<ap-sql>SELECT c_finalEDB FROM formONAREnhancedRecord f where
+			demographic_no=${demographic} order by ID desc limit 1;</ap-sql>
+		<ap-output>${c_finalEDB}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bcGTPAL</ap-name>
+		<ap-sql>SELECT CONCAT('G',pg1_gravida,' T', pg1_term ,' P',
+			pg1_preterm ,' A', pg1_abortion, ' L', pg1_living ) AS bcGTPAL FROM
+			formBCAR2012 where demographic_no=${demographic} ORDER BY ID DESC
+			LIMIT 1;</ap-sql>
+		<ap-output>${bcGTPAL}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bcEDD</ap-name>
+		<ap-sql>SELECT bcar.c_EDD FROM
+			(select id, demographic_no, c_EDD, formEdited from formBCAR2007 UNION select id, demographic_no, c_EDD, formEdited from formBCAR2012) as bcar
+			where bcar.demographic_no=${demographic} order by bcar.formEdited desc limit 1;</ap-sql>
+		<ap-output>${c_EDD}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bcEDD2</ap-name>
+		<ap-sql>SELECT DATE_FORMAT(bcar.c_EDD, '%d/%m/%Y') as c_EDD FROM
+			(select id, demographic_no, c_EDD, formEdited from formBCAR2007 UNION select id, demographic_no, c_EDD, formEdited from formBCAR2012) as bcar
+			where bcar.demographic_no=${demographic} order by bcar.formEdited desc limit 1;</ap-sql>
+		<ap-output>${c_EDD}</ap-output>
+	</databaseap>
+
+	<!-- The Billing Group of the CURRENTLY LOGGED IN provider-->
+	<databaseap>
+		<ap-name>current_user_group_billing_number</ap-name>
+		<ap-sql>
+			SELECT EXTRACTVALUE(provider.comments, '/xml_p_billinggroup_no') AS billing_group_no FROM provider
+			WHERE provider_no = ${loggedInProvider}
+		</ap-sql>
+		<ap-output>${billing_group_no}</ap-output>
+	</databaseap>
+
+	<!-- The Billing Group of the provider. (whoever is listed as the doctor in the Master Record) -->
+	<databaseap>
+		<ap-name>doctor_group_billing_number</ap-name>
+		<ap-sql>
+			SELECT EXTRACTVALUE(provider.comments, '/xml_p_billinggroup_no') AS billing_group_no
+			FROM provider
+
+			INNER JOIN demographic
+			ON demographic.provider_no=provider.provider_no
+
+			WHERE demographic.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${billing_group_no}</ap-output>
+	</databaseap>
+
+	<!-- Doctor information -->
+	<databaseap>
+		<ap-name>doctor</ap-name>
+		<ap-sql>SELECT provider.first_name, provider.last_name FROM provider,
+			demographic WHERE demographic.demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no</ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctorF</ap-name>
+		<ap-sql>SELECT provider.first_name FROM provider,
+			demographic WHERE demographic.demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no</ap-sql>
+		<ap-output>${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctorL</ap-name>
+		<ap-sql>SELECT provider.last_name FROM provider,
+			demographic WHERE demographic.demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no</ap-sql>
+		<ap-output>${last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_provider_no</ap-name>
+		<ap-sql>SELECT provider_no FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${provider_no}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_ohip_no</ap-name>
+		<ap-sql>SELECT provider.ohip_no FROM provider, demographic WHERE
+			demographic.demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no</ap-sql>
+		<ap-output>${ohip_no}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_specialty_code</ap-name>
+		<ap-sql>SELECT
+			MID( p.comments,
+			INSTR(p.comments,'&lt;xml_p_specialty_code&gt;')+22,
+			INSTR(p.comments,'&lt;/xml_p_specialty_code&gt;')-INSTR(p.comments,'&lt;xml_p_specialty_code&gt;')-22
+			) AS specialty_code
+			FROM provider p, demographic d
+			WHERE d.demographic_no=${demographic} AND d.provider_no=p.provider_no
+		</ap-sql>
+		<ap-output>${specialty_code}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_cpsid</ap-name>
+		<ap-sql>SELECT provider.practitionerNo FROM provider, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${practitionerNo}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_cpsid</ap-name>
+		<ap-sql>SELECT provider.practitionerNo FROM provider, appointment
+			WHERE appointment.appointment_no=${appt_no} AND
+			appointment.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${practitionerNo}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>app_provider_email</ap-name>
+		<ap-sql>SELECT provider.email FROM provider JOIN
+			    appointment as appt
+				ON appt.provider_no=provider.provider_no
+				WHERE appt.appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${email}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_specialty</ap-name>
+		<ap-sql>SELECT provider.specialty FROM provider, appointment
+			WHERE appointment.appointment_no=${appt_no} AND
+			appointment.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${specialty}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_title</ap-name>
+		<ap-sql>SELECT provider.title FROM provider, demographic WHERE
+			demographic.demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no</ap-sql>
+		<ap-output>${title}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>provider_name</ap-name>
+		<ap-sql>SELECT provider.last_name, provider.first_name FROM provider,
+			demographic
+			WHERE demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>provider_name_first_init</ap-name>
+		<ap-sql>select substring(provider.first_name,1,1) as
+			first_init,provider.last_name FROM provider, demographic
+			WHERE demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${first_init}. ${last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>provider_specialty</ap-name>
+		<ap-sql>SELECT provider.specialty FROM provider, demographic
+			WHERE demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${specialty}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>provider_lifelabs_id</ap-name>
+		<ap-sql>SELECT provider.ontario_lifelabs_id as llid FROM provider,
+			demographic
+			WHERE demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${llid}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_work_phone</ap-name>
+		<ap-sql>SELECT provider.work_phone FROM provider, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			demographic.provider_no=provider.provider_no
+		</ap-sql>
+		<ap-output>${work_phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_email</ap-name>
+		<ap-sql>SELECT provider.email FROM provider JOIN
+				demographic as demo
+				ON provider.provider_no = demo.provider_no
+				WHERE demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${email}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_cc_provider_id</ap-name>
+		<ap-sql>SELECT provider.alberta_connect_care_id FROM provider JOIN
+			demographic as demo
+			ON provider.provider_no = demo.provider_no
+			WHERE demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${alberta_connect_care_id}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_fax</ap-name>
+		<ap-sql>SELECT SUBSTR(p.comments,
+			LOCATE('&lt;xml_p_fax&gt;', p.comments )+11,
+			LOCATE('&lt;/xml_p_fax&gt;', p.comments )-(LOCATE('&lt;xml_p_fax&gt;', p.comments )+11)
+			) as fax
+			FROM provider p JOIN demographic d ON(d.provider_no=p.provider_no)
+			WHERE d.demographic_no = ${demographic};
+		</ap-sql>
+		<ap-output>${fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>doctor_signature</ap-name>
+		<ap-sql>SELECT providerExt.signature FROM providerExt, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			demographic.provider_no=providerExt.provider_no
+		</ap-sql>
+		<ap-output>${signature}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_name</ap-name>
+		<ap-sql>SELECT p.last_name, p.first_name FROM provider p, appointment
+			a
+			WHERE p.provider_no=a.provider_no AND a.appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_nameF</ap-name>
+		<ap-sql>
+			SELECT p.first_name
+			FROM provider p, appointment a
+			WHERE p.provider_no=a.provider_no AND a.appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_nameL</ap-name>
+		<ap-sql>
+			SELECT p.last_name
+			FROM provider p, appointment a
+			WHERE p.provider_no=a.provider_no AND a.appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_ohip_no</ap-name>
+		<ap-sql>SELECT p.ohip_no
+			FROM provider p INNER JOIN appointment a ON (p.provider_no=a.provider_no)
+			WHERE a.appointment_no=${appt_no}
+		</ap-sql>
+		<ap-output>${ohip_no}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_provider_id</ap-name>
+		<ap-sql>SELECT provider_no FROM appointment WHERE
+			appointment_no=${appt_no}</ap-sql>
+		<ap-output>${provider_no}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>appt_no</ap-name>
+		<ap-sql>SELECT ${appt_no} as appt_no</ap-sql>
+		<ap-output>${appt_no}</ap-output>
+	</databaseap>
+
+	<!-- Referral information -->
+	<databaseap>
+		<ap-name>referral_name</ap-name>
+		<ap-sql>SELECT
+			CASE WHEN (ps.lName IS NULL AND ps.fName IS NULL) OR LENGTH(ps.referralNo) = 0
+			THEN EXTRACTVALUE(d.family_doctor, '/rd')
+			ELSE CONCAT(ps.lName, ", ", ps.fName)
+			END as referral_doc_name
+			FROM demographic d
+			LEFT JOIN professionalSpecialists ps ON (EXTRACTVALUE(d.family_doctor, '/rdohip') = ps.referralNo)
+			WHERE d.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${referral_doc_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>referral_nameF</ap-name>
+		<ap-sql>SELECT
+			CASE WHEN (ps.lName IS NULL AND ps.fName IS NULL) OR LENGTH(ps.referralNo) = 0
+			THEN SUBSTRING_INDEX(EXTRACTVALUE(d.family_doctor, '/rd'), ',', -1)
+			ELSE ps.fName
+			END as referral_doc_first_name
+			FROM demographic d
+			LEFT JOIN professionalSpecialists ps ON (EXTRACTVALUE(d.family_doctor, '/rdohip') = ps.referralNo)
+			WHERE d.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${referral_doc_first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>referral_nameL</ap-name>
+		<ap-sql>SELECT
+			CASE WHEN (ps.lName IS NULL AND ps.fName IS NULL) OR LENGTH(ps.referralNo) = 0
+			THEN SUBSTRING_INDEX(EXTRACTVALUE(d.family_doctor, '/rd'), ',', 1)
+			ELSE ps.lName
+			END as referral_doc_last_name
+			FROM demographic d
+			LEFT JOIN professionalSpecialists ps ON (EXTRACTVALUE(d.family_doctor, '/rdohip') = ps.referralNo)
+			WHERE d.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${referral_doc_last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>referral_address</ap-name>
+		<ap-sql>SELECT professionalSpecialists.address AS raddress
+			FROM professionalSpecialists, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			LENGTH(professionalSpecialists.referralNo) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor, '/rdohip') = professionalSpecialists.referralNo
+		</ap-sql>
+		<ap-output>${raddress}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>referral_phone</ap-name>
+		<ap-sql>SELECT professionalSpecialists.phone
+			FROM professionalSpecialists, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			LENGTH(professionalSpecialists.referralNo) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor, '/rdohip') = professionalSpecialists.referralNo
+		</ap-sql>
+		<ap-output>${phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>referral_fax</ap-name>
+		<ap-sql>SELECT professionalSpecialists.fax
+			FROM professionalSpecialists, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			LENGTH(professionalSpecialists.referralNo) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor, '/rdohip') = professionalSpecialists.referralNo
+		</ap-sql>
+		<ap-output>${fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>referral_no</ap-name>
+		<ap-sql>
+			SELECT professionalSpecialists.referralNo AS referral_no
+			FROM professionalSpecialists, demographic
+			WHERE demographic.demographic_no=${demographic} AND
+			LENGTH(professionalSpecialists.referralNo) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor, '/rdohip') = professionalSpecialists.referralNo
+		</ap-sql>
+		<ap-output>${referral_no}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_referral_name</ap-name>
+		<ap-sql>SELECT billingreferral.last_name, billingreferral.first_name
+			FROM billingreferral, demographic
+			WHERE demographic.demographic_no=${demographic}
+			AND LENGTH(billingreferral.referral_no) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor, '/rdohip') = billingreferral.referral_no
+		</ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_referral_nameF</ap-name>
+		<ap-sql>SELECT billingreferral.first_name
+			FROM billingreferral, demographic
+			WHERE demographic.demographic_no=${demographic}
+			AND LENGTH(billingreferral.referral_no) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor, '/rdohip') = billingreferral.referral_no
+		</ap-sql>
+		<ap-output>${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_referral_nameL</ap-name>
+		<ap-sql>SELECT billingreferral.last_name
+			FROM billingreferral, demographic
+			WHERE demographic.demographic_no=${demographic}
+			AND LENGTH(billingreferral.referral_no) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor, '/rdohip') = billingreferral.referral_no
+		</ap-sql>
+		<ap-output>${last_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_referral_address</ap-name>
+		<ap-sql>SELECT CONCAT( COALESCE(b.address1, ''), IF( COALESCE(b.address1, '') ='', '', '\n' ),
+			COALESCE(b.address2, ''), IF( COALESCE(b.address2, '') ='', '', '\n' ) , b.city, ' ', b.province,
+			' ', b.postal ) AS raddress
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND EXTRACTVALUE(d.family_doctor, '/rdohip') = b.referral_no
+		</ap-sql>
+		<ap-output>${raddress}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_referral_phone</ap-name>
+		<ap-sql>SELECT b.phone
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND
+			EXTRACTVALUE(d.family_doctor, '/rdohip') = b.referral_no
+		</ap-sql>
+		<ap-output>${phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_referral_fax</ap-name>
+		<ap-sql>SELECT b.fax
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND
+			EXTRACTVALUE(d.family_doctor, '/rdohip') = b.referral_no
+		</ap-sql>
+		<ap-output>${fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_referral_no</ap-name>
+		<ap-sql>SELECT b.referral_no
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND
+			EXTRACTVALUE(d.family_doctor, '/rdohip') = b.referral_no
+		</ap-sql>
+		<ap-output>${referral_no}</ap-output>
+	</databaseap>
+
+	<!-- Clinic information -->
+	<databaseap>
+		<ap-name>clinic_name</ap-name>
+		<ap-sql>SELECT clinic_name FROM clinic</ap-sql>
+		<ap-output>${clinic_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_phone</ap-name>
+		<ap-sql>SELECT clinic_phone FROM clinic</ap-sql>
+		<ap-output>${clinic_phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_fax</ap-name>
+		<ap-sql>SELECT clinic_fax FROM clinic</ap-sql>
+		<ap-output>${clinic_fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_email</ap-name>
+		<ap-sql>SELECT email FROM clinic </ap-sql>
+		<ap-output>${email}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_label</ap-name>
+		<ap-sql>SELECT * FROM clinic</ap-sql>
+		<ap-output>${clinic_name}\n${clinic_address}\n${clinic_city},${clinic_province},${clinic_postal}\nTel:${clinic_phone}\nFax:${clinic_fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_addressLine</ap-name>
+		<ap-sql>SELECT clinic_address FROM clinic</ap-sql>
+		<ap-output>${clinic_address}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_addressLineFull</ap-name>
+		<ap-sql>SELECT * FROM clinic</ap-sql>
+		<ap-output>${clinic_address}, ${clinic_city}, ${clinic_province}, ${clinic_postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_address</ap-name>
+		<ap-sql>SELECT * FROM clinic</ap-sql>
+		<ap-output>${clinic_address} \n${clinic_city} ${clinic_province}
+			${clinic_postal} \nCanada</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_city</ap-name>
+		<ap-sql>SELECT * FROM clinic</ap-sql>
+		<ap-output>${clinic_city}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_province</ap-name>
+		<ap-sql>SELECT * FROM clinic</ap-sql>
+		<ap-output>${clinic_province}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_postal</ap-name>
+		<ap-sql>SELECT * FROM clinic</ap-sql>
+		<ap-output>${clinic_postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_multi_phone</ap-name>
+		<ap-sql>SELECT clinic_delim_phone AS clinic_multi_phone FROM clinic</ap-sql>
+		<ap-output>${clinic_multi_phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_multi_fax</ap-name>
+		<ap-sql>SELECT clinic_delim_fax AS clinic_multi_fax FROM clinic</ap-sql>
+		<ap-output>${clinic_multi_fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_cc_lab_id</ap-name>
+		<ap-sql>SELECT alberta_connect_care_lab_id FROM clinic</ap-sql>
+		<ap-output>${alberta_connect_care_lab_id}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>clinic_cc_department_id</ap-name>
+		<ap-sql>SELECT alberta_connect_care_department_id FROM clinic</ap-sql>
+		<ap-output>${alberta_connect_care_department_id}</ap-output>
+	</databaseap>
+
+	<!-- Extended eform tags, cannot be directly called -->
+	<databaseap>
+		<ap-name>_eform_values_first</ap-name>
+		<ap-sql>SELECT var_value FROM eform_values
+			WHERE var_name='${var_name}'
+			AND fdid=
+			(SELECT MIN(fdid) FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1)
+		</ap-sql>
+		<ap-output>${var_value}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_last</ap-name>
+		<ap-sql>SELECT var_value FROM eform_values
+			WHERE var_name='${var_name}'
+			AND fdid=
+			(SELECT MAX(fdid) FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1)
+		</ap-sql>
+		<ap-output>${var_value}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_first_all_json</ap-name>
+		<ap-sql>SELECT var_name AS fieldname, var_value AS fieldvalue FROM
+			eform_values
+			WHERE fdid=
+			(SELECT MIN(fdid) FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1)
+		</ap-sql>
+		<ap-output>${fieldname}, ${fieldvalue}</ap-output>
+		<ap-json-output>true</ap-json-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_last_all_json</ap-name>
+		<ap-sql>SELECT var_name AS fieldname, var_value AS fieldvalue FROM
+			eform_values
+			WHERE fdid=
+			(SELECT MAX(fdid) FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1)
+		</ap-sql>
+		<ap-output>${fieldname}, ${fieldvalue}</ap-output>
+		<ap-json-output>true</ap-json-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_count</ap-name>
+		<ap-sql>SELECT count(0) FROM eform_values
+			WHERE var_name='${var_name}' AND var_value='${var_value}'
+			AND fdid IN
+			(SELECT fdid FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1)
+		</ap-sql>
+		<ap-output>${count(0)}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_countname</ap-name>
+		<ap-sql>SELECT count(0) FROM eform_values
+			WHERE var_name='${var_name}' AND NOT (var_value='' OR var_value IS NULL)
+			AND fdid IN
+			(SELECT fdid FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1)
+		</ap-sql>
+		<ap-output>${count(0)}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_count_ref</ap-name>
+		<ap-sql>SELECT count(0) FROM eform_values
+			WHERE var_name='${var_name}' AND var_value='${var_value}'
+			AND fdid IN
+			(SELECT fdid FROM eform_values
+			WHERE var_name='${ref_var_name}' AND var_value='${ref_var_value}'
+			AND fdid IN
+			(SELECT fdid FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1))
+		</ap-sql>
+		<ap-output>${count(0)}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_countname_ref</ap-name>
+		<ap-sql>SELECT count(0) FROM eform_values
+			WHERE var_name='${var_name}' AND NOT (var_value='' OR var_value IS NULL)
+			AND fdid IN
+			(SELECT fdid FROM eform_values
+			WHERE var_name='${ref_var_name}' AND var_value='${ref_var_value}'
+			AND fdid IN
+			(SELECT fdid FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1))
+		</ap-sql>
+		<ap-output>${count(0)}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_count_refname</ap-name>
+		<ap-sql>SELECT count(0) FROM eform_values
+			WHERE var_name='${var_name}' AND var_value='${var_value}'
+			AND fdid IN
+			(SELECT fdid FROM eform_values
+			WHERE var_name='${ref_var_name}' AND NOT (var_value='' OR var_value IS
+			NULL)
+			AND fdid IN
+			(SELECT fdid FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1))
+		</ap-sql>
+		<ap-output>${count(0)}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_eform_values_countname_refname</ap-name>
+		<ap-sql>SELECT count(0) FROM eform_values
+			WHERE var_name='${var_name}' AND NOT (var_value='' OR var_value IS NULL)
+			AND fdid IN
+			(SELECT fdid FROM eform_values
+			WHERE var_name='${ref_var_name}' AND NOT (var_value='' OR var_value IS
+			NULL)
+			AND fdid IN
+			(SELECT fdid FROM eform_data
+			WHERE demographic_no like '${eform_demographic}' AND fid=${fid} AND
+			status=1))
+		</ap-sql>
+		<ap-output>${count(0)}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>_other_id</ap-name>
+		<ap-sql>SELECT other_id FROM other_id WHERE table_name=${table_name}
+			AND table_id=${table_id}
+			AND other_key='${other_key}' AND deleted=false ORDER BY id DESC LIMIT 1
+		</ap-sql>
+		<ap-output>${other_id}</ap-output>
+	</databaseap>
+	<!-- Extended eform tags end -->
+
+	<databaseap>
+		<ap-name>dtap_immunization_date</ap-name>
+		<ap-sql>select prevention_date from preventions p where
+			p.prevention_type = 'dtap-ipv-hib' and p.deleted = '0' and
+			p.demographic_no = ${demographic} order by p.prevention_date desc
+			limit 1
+		</ap-sql>
+		<ap-output>${prevention_date}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>flu_immunization_date</ap-name>
+		<ap-sql>select prevention_date from preventions p where
+			p.prevention_type = 'Flu' and p.deleted = '0' and p.demographic_no =
+			${demographic} order by p.prevention_date desc limit 1
+		</ap-sql>
+		<ap-output>${prevention_date}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>fobt_immunization_date</ap-name>
+		<ap-sql>select prevention_date from preventions p where
+			p.prevention_type = 'FOBT' and p.deleted = '0' and p.demographic_no =
+			${demographic} order by p.prevention_date desc limit 1
+		</ap-sql>
+		<ap-output>${prevention_date}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>mammogram_immunization_date</ap-name>
+		<ap-sql>select prevention_date from preventions p where
+			p.prevention_type = 'MAM' and p.deleted = '0' and p.demographic_no =
+			${demographic} order by p.prevention_date desc limit 1
+		</ap-sql>
+		<ap-output>${prevention_date}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>pap_immunization_date</ap-name>
+		<ap-sql>select prevention_date from preventions p where
+			p.prevention_type = 'PAP' and p.deleted = '0' and p.demographic_no =
+			${demographic} order by p.prevention_date desc limit 1
+		</ap-sql>
+		<ap-output>${prevention_date}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>cytology_no</ap-name>
+		<ap-sql>select value from demographicExt d where d.key_val =
+			'cytolNum' and d.demographic_no = ${demographic};
+		</ap-sql>
+		<ap-output>${value}</ap-output>
+	</databaseap>
+
+	<databaseap>
+		<ap-name>guardian_label</ap-name>
+		<ap-sql>select d.first_name, d.last_name, d.address, d.city,
+			d.province, d.postal from relationships r, demographic d where
+			r.relation_demographic_no = d.demographic_no and r.demographic_no =
+			${demographic}
+		</ap-sql>
+		<ap-output>${first_name} ${last_name} \n${address} \n${city}
+			${province} \n${postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>guardian_label2</ap-name>
+		<ap-sql>select d.first_name, d.last_name, d.address, d.city,
+			d.province, d.postal from DemographicContact r, demographic d where
+			r.contactId = d.demographic_no and r.sdm = 'true' and r.demographicNo
+			= ${demographic}
+		</ap-sql>
+		<ap-output>${first_name} ${last_name} \n${address} \n${city}
+			${province} \n${postal}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>email</ap-name>
+		<ap-sql>SELECT email FROM demographic WHERE
+			demographic_no=${demographic}</ap-sql>
+		<ap-output>${email}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>service_date</ap-name>
+		<ap-sql>select billing_date from billing_on_cheader1 where
+			id=${invoiceNo}
+		</ap-sql>
+		<ap-output>${billing_date}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>practitioner</ap-name>
+		<ap-sql>select CONCAT('Dr.',' ',p.first_name,' ', UPPER(p.last_name))
+			as provider_name from provider p, billing_on_cheader1 b where
+			p.provider_no=b.provider_no and b.id=${invoiceNo}
+		</ap-sql>
+		<ap-output>${provider_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>ref_doctor</ap-name>
+		<ap-sql>select ref_num from billing_on_cheader1 where id=${invoiceNo}
+		</ap-sql>
+		<ap-output>${ref_num}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>fee_total</ap-name>
+		<ap-sql>select ifnull((select format(sum(fee),2) from billing_on_item
+			where ch1_id=${invoiceNo} and status !='D'),'0.00') as fees
+		</ap-sql>
+		<ap-output>${fees}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>payment_total</ap-name>
+		<ap-sql>select ifnull((select format(sum(value),2) from billing_on_ext
+			where billing_no=${invoiceNo} and status='1' and
+			key_val='payment'),'0.00') as payment
+		</ap-sql>
+		<ap-output>${payment}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>refund_total</ap-name>
+		<ap-sql>select ifnull((select format(sum(value),2) from billing_on_ext
+			where billing_no=${invoiceNo} and status='1' and
+			key_val='refund'),'0.00') as refund
+		</ap-sql>
+		<ap-output>${refund}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>balance_owing</ap-name>
+		<ap-sql> select format((select ifnull((select format(sum(fee),2) as
+			fees from billing_on_item where ch1_id=${invoiceNo} and status
+			!='D'),'0.00') - (select ifnull((select format(sum(value),2) as
+			payment from billing_on_ext where billing_no=${invoiceNo} and
+			status='1' and key_val='payment'),'0.00')) - (select ifnull((select
+			format(sum(value),2) as refund from billing_on_ext where
+			billing_no=${invoiceNo} and status='1' and
+			key_val='refund'),'0.00'))),2) as balance_owing
+		</ap-sql>
+		<ap-output>${balance_owing}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bill_item_number</ap-name>
+		<ap-sql>select
+			GROUP_CONCAT(id SEPARATOR '<![CDATA[<br/>]]>')
+			as billing_id from billing_on_item where ch1_id=${invoiceNo} and
+			status != 'D' order by id
+		</ap-sql>
+		<ap-output>${billing_id}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bill_item_description</ap-name>
+		<ap-sql>select
+			GROUP_CONCAT(description SEPARATOR '<![CDATA[<br/>]]>')
+			as billing_desc from billingservice b, billing_on_item bi where
+			b.service_code=bi.service_code and bi.ch1_id=${invoiceNo} and
+			bi.status !='D' and b.billingservice_no = (select
+			max(b2.billingservice_no) from billingservice b2 where b.service_code
+			= b2.service_code and b2.billingservice_date &lt;= now()) order by
+			bi.id
+		</ap-sql>
+		<ap-output>${billing_desc}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bill_item_service_code</ap-name>
+		<ap-sql>select
+			GROUP_CONCAT(service_code SEPARATOR '<![CDATA[<br/>]]>')
+			as billing_service_code from billing_on_item where
+			ch1_id=${invoiceNo} and status != 'D' order by id
+		</ap-sql>
+		<ap-output>${billing_service_code}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bill_item_qty</ap-name>
+		<ap-sql>select
+			GROUP_CONCAT(ser_num SEPARATOR '<![CDATA[<br/>]]>')
+			as billing_qty from billing_on_item where ch1_id=${invoiceNo} and
+			status != 'D' order by id
+		</ap-sql>
+		<ap-output>${billing_qty}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bill_item_dx</ap-name>
+		<ap-sql>select
+			GROUP_CONCAT(dx SEPARATOR '<![CDATA[<br/>]]>')
+			as billing_dx from billing_on_item where ch1_id=${invoiceNo} and
+			status != 'D' order by id
+		</ap-sql>
+		<ap-output>${billing_dx}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bill_item_amount</ap-name>
+		<ap-sql>select
+			GROUP_CONCAT(format(fee,2) SEPARATOR '<![CDATA[<br/>]]>')
+			as billing_fee from billing_on_item where ch1_id=${invoiceNo} and
+			status != 'D' order by id
+		</ap-sql>
+		<ap-output>${billing_fee}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>urine_tox_test_json</ap-name>
+		<ap-sql>select type, dataField, comments, dateObserved, dateEntered
+			from measurements
+			where demographicNo=${demographic}
+			and (type="OPID" or type="MAMP" or type="BZD" or type="CANB" or
+			type="Uetc")
+			order by dateEntered;
+		</ap-sql>
+		<ap-output>${type}, ${dataField}, ${comments}, ${dateObserved},
+			${dateEntered}</ap-output>
+		<ap-json-output>true</ap-json-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>methadone_induction_assessment_json</ap-name>
+		<ap-sql>select type, dataField, comments, dateObserved, dateEntered
+			from measurements
+			where demographicNo=${demographic}
+			and (type="RHU" or type="ORDU" or type="MDD" or type="GWS")
+			order by dateEntered;
+		</ap-sql>
+		<ap-output>${type}, ${dataField}, ${comments}, ${dateObserved},
+			${dateEntered}</ap-output>
+		<ap-json-output>true</ap-json-output>
+	</databaseap>
+
+	<!-- OHSUPPORT-3539 - measurement info for WHO forms -->
+	<databaseap>
+		<ap-name>who_measurements</ap-name>
+		<ap-sql>SELECT GROUP_CONCAT(
+			REPLACE(CONCAT( IFNULL(Q.obsDate, ''),'|', IFNULL(Q.height, ''), '|',
+			IFNULL(Q.weight, ''), '|', IFNULL(Q.circ, ''), '|',
+			IFNULL(REPLACE(Q.comments,'|',''), '')),';','')
+			SEPARATOR ';') AS list FROM (
+			SELECT
+			DATE(m.dateObserved) AS obsDate,
+			MAX(IF(m.type='HT', m.dataField, NULL)) AS height,
+			MAX(IF(m.type='WT', m.dataField, NULL)) AS weight,
+			MAX(IF(m.type='HEAD', m.dataField, NULL)) AS circ,
+			MAX(m.comments) as comments
+
+			FROM measurements m
+			WHERE m.type IN ('HT', 'WT', 'HEAD')
+			AND m.demographicNo='${demographic}'
+			GROUP BY DATE(m.dateObserved)
+			) AS Q
+			ORDER BY Q.obsDate DESC
+		</ap-sql>
+		<ap-output>${list}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>healthcare_team_nameF</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(COALESCE(NULLIF(provider.first_name, ''), NULLIF(Contact.firstName, ''), NULLIF(professionalSpecialists.fName, ''), '')
+				ORDER BY COALESCE(NULLIF(provider.last_name, ''), NULLIF(Contact.lastName, ''), NULLIF(professionalSpecialists.lName, ''), '-') ASC
+				SEPARATOR ' | ') AS fName
+			FROM DemographicContact
+
+			LEFT JOIN provider
+			ON DemographicContact.contactId = provider.provider_no
+			AND DemographicContact.type = 0
+
+			LEFT JOIN Contact
+			ON DemographicContact.contactId = Contact.id
+			AND DemographicContact.type = 2
+
+			LEFT JOIN professionalSpecialists
+			ON DemographicContact.contactId = professionalSpecialists.specId
+			AND DemographicContact.type = 3
+
+			WHERE demographicNo=${demographic};
+		</ap-sql>
+		<ap-output>${fName}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>healthcare_team_nameL</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(COALESCE(NULLIF(provider.last_name, ''), NULLIF(Contact.lastName, ''), NULLIF(professionalSpecialists.lName, ''), '')
+				ORDER BY COALESCE(NULLIF(provider.last_name, ''), NULLIF(Contact.lastName, ''), NULLIF(professionalSpecialists.lName, ''), '-') ASC
+				SEPARATOR ' | ') AS lName
+			FROM DemographicContact
+
+			LEFT JOIN provider
+			ON DemographicContact.contactId = provider.provider_no
+			AND DemographicContact.type = 0
+
+			LEFT JOIN Contact
+			ON DemographicContact.contactId = Contact.id
+			AND DemographicContact.type = 2
+
+			LEFT JOIN professionalSpecialists
+			ON DemographicContact.contactId = professionalSpecialists.specId
+			AND DemographicContact.type = 3
+
+			WHERE demographicNo=${demographic};
+		</ap-sql>
+		<ap-output>${lName}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>healthcare_team_fax</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(COALESCE(NULLIF(property.value, ''), NULLIF(Contact.fax, ''),  NULLIF(professionalSpecialists.fax, ''), '')
+				ORDER BY COALESCE(NULLIF(provider.last_name, ''), NULLIF(Contact.lastName, ''), NULLIF(professionalSpecialists.lName, ''), '-') ASC
+				SEPARATOR ' | ') AS faxNumber
+			FROM DemographicContact
+
+			LEFT JOIN provider
+			ON DemographicContact.contactId = provider.provider_no
+			AND DemographicContact.type = 0
+
+			LEFT JOIN property
+			ON property.provider_no = DemographicContact.contactId
+			AND DemographicContact.type = 0
+			AND property.name='faxnumber'
+
+			LEFT JOIN Contact
+			ON DemographicContact.contactId = Contact.id
+			AND DemographicContact.type = 2
+
+			LEFT JOIN professionalSpecialists
+			ON DemographicContact.contactId = professionalSpecialists.specId
+			AND DemographicContact.type = 3
+
+			WHERE demographicNo=${demographic};
+		</ap-sql>
+		<ap-output>${faxNumber}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>healthcare_team_phone</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(COALESCE(NULLIF(provider.work_phone, ''), NULLIF(Contact.workPhone, ''), NULLIF(professionalSpecialists.phone, ''), '')
+				ORDER BY COALESCE(NULLIF(provider.last_name, ''), NULLIF(Contact.lastName, ''), NULLIF(professionalSpecialists.lName, ''), '-') ASC
+				SEPARATOR ' | ') AS phone
+			FROM DemographicContact
+
+			LEFT JOIN provider
+			ON DemographicContact.contactId = provider.provider_no
+			AND DemographicContact.type = 0
+
+			LEFT JOIN Contact
+			ON DemographicContact.contactId = Contact.id
+			AND DemographicContact.type = 2
+
+			LEFT JOIN professionalSpecialists
+			ON DemographicContact.contactId = professionalSpecialists.specId
+			AND DemographicContact.type = 3
+
+			WHERE demographicNo=${demographic};
+		</ap-sql>
+		<ap-output>${phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>healthcare_team_role</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(COALESCE(
+					specialty.specialtydesc,
+					IF(dc.role = '25', 'INTERNAL', NULL), # Role 25 is not found in the specialty table
+					dc.role,
+					'')
+				ORDER BY COALESCE(NULLIF(provider.last_name, ''), NULLIF(Contact.lastName, ''), NULLIF(professionalSpecialists.lName, ''), '-') ASC
+				SEPARATOR ' | ') AS role
+			FROM DemographicContact dc
+
+			LEFT JOIN provider
+			ON dc.contactId = provider.provider_no
+			AND dc.type = 0
+
+			LEFT JOIN Contact
+			ON dc.contactId = Contact.id
+			AND dc.type = 2
+
+			LEFT JOIN professionalSpecialists
+			ON dc.contactId = professionalSpecialists.specId
+			AND dc.type = 3
+
+			LEFT JOIN specialty
+			ON dc.role REGEXP '^[0-9]+$' # Only join on role when it's an int. If it's a string then take it 'as-is'
+			AND (dc.role = specialty.specialty OR CONCAT('0', dc.role) = specialty.specialty)
+
+			WHERE dc.demographicNo=${demographic};
+		</ap-sql>
+		<ap-output>${role}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>healthcare_team_address</ap-name>
+		<ap-sql>
+			SELECT GROUP_CONCAT(COALESCE(NULLIF(provider.address, ''), NULLIF(Contact.address, ''), NULLIF(professionalSpecialists.address, ''), '')
+				ORDER BY COALESCE(NULLIF(provider.last_name, ''), NULLIF(Contact.lastName, ''), NULLIF(professionalSpecialists.lName, ''), '-') ASC
+				SEPARATOR ' | ') AS address
+			FROM DemographicContact dc
+
+			LEFT JOIN provider
+			ON dc.contactId = provider.provider_no
+			AND dc.type = 0
+
+			LEFT JOIN Contact
+			ON dc.contactId = Contact.id
+			AND dc.type = 2
+
+			LEFT JOIN professionalSpecialists
+			ON dc.contactId = professionalSpecialists.specId
+			AND dc.type = 3
+
+			WHERE demographicNo=${demographic};
+		</ap-sql>
+		<ap-output>${address}</ap-output>
+	</databaseap>
+
+	<!-- family doctor -->
+	<databaseap>
+		<ap-name>family_doctor_name</ap-name>
+		<ap-sql>
+			SELECT ps.lName, ps.fName
+			FROM (
+			SELECT ExtractValue(family_doctor_2, '//fdname') AS original_name,
+			ExtractValue(family_doctor_2, '//fd') AS doctor_no,
+			IF(ExtractValue(family_doctor_2, '//rd') regexp '^Dr.', TRIM(substr(ExtractValue(family_doctor_2, '//rd') from 4)), ExtractValue(family_doctor_2, '//fdname') ) as full_name
+			FROM demographic
+			WHERE demographic_no = ${demographic}
+			) as q
+			LEFT JOIN professionalSpecialists ps ON if(q.doctor_no is not null and q.doctor_no > 0, q.doctor_no = ps.referralNo, coalesce(LCASE(substr(ps.fName,1,1)) = LCASE(substr(if(locate(' ', q.full_name) != 0, SUBSTRING_INDEX(q.full_name, ' ', 1), null),1,1)), true) and LCASE(ps.lName) = LCASE(substring_index(q.full_name, ' ', -1))) GROUP BY 1 HAVING COUNT(*) = 1
+		</ap-sql>
+		<ap-output>${lName}, ${fName}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>family_doctor_last_name</ap-name>
+		<ap-sql>
+			SELECT ps.lName
+			FROM (
+			SELECT ExtractValue(family_doctor_2, '//fdname') AS original_name,
+			ExtractValue(family_doctor_2, '//fd') AS doctor_no,
+			IF(ExtractValue(family_doctor_2, '//rd') regexp '^Dr.', TRIM(substr(ExtractValue(family_doctor_2, '//rd') from 4)), ExtractValue(family_doctor_2, '//fdname') ) as full_name
+			FROM demographic
+			WHERE demographic_no = ${demographic}
+			) as q
+			LEFT JOIN professionalSpecialists ps ON if(q.doctor_no is not null and q.doctor_no > 0, q.doctor_no = ps.referralNo, coalesce(LCASE(substr(ps.fName,1,1)) = LCASE(substr(if(locate(' ', q.full_name) != 0, SUBSTRING_INDEX(q.full_name, ' ', 1), null),1,1)), true) and LCASE(ps.lName) = LCASE(substring_index(q.full_name, ' ', -1))) GROUP BY 1 HAVING COUNT(*) = 1
+		</ap-sql>
+		<ap-output>${lName}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>family_doctor_address</ap-name>
+		<ap-sql>
+			SELECT ps.address AS raddress FROM
+			(
+			SELECT ExtractValue(family_doctor_2, '//fdname') AS original_name,
+			ExtractValue(family_doctor_2, '//fd') AS doctor_no,
+			IF(ExtractValue(family_doctor_2, '//rd') regexp '^Dr.', TRIM(substr(ExtractValue(family_doctor_2, '//rd') from 4)), ExtractValue(family_doctor_2, '//fdname') ) as full_name
+			FROM demographic
+			WHERE demographic_no = ${demographic}
+			) as q LEFT JOIN professionalSpecialists ps ON if(q.doctor_no IS NOT NULL AND q.doctor_no > 0, q.doctor_no = ps.referralNo, COALESCE(LCASE(substr(ps.fName,1,1)) = LCASE(SUBSTR(if(locate(' ', q.full_name) != 0, SUBSTRING_INDEX(q.full_name, ' ', 1), null),1,1)), true) and LCASE(ps.lName) = LCASE(substring_index(q.full_name, ' ', -1))) GROUP BY 1 HAVING COUNT(*) = 1
+		</ap-sql>
+		<ap-output>${raddress}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>family_doctor_phone</ap-name>
+		<ap-sql>
+			SELECT ps.phone FROM (
+			SELECT ExtractValue(family_doctor_2, '//fdname') AS original_name,
+			ExtractValue(family_doctor_2, '//fd') AS doctor_no,
+			IF(ExtractValue(family_doctor_2, '//rd') regexp '^Dr.', TRIM(substr(ExtractValue(family_doctor_2, '//rd') from 4)), ExtractValue(family_doctor_2, '//fdname') ) as full_name
+			FROM demographic
+			WHERE demographic_no = ${demographic}
+			) as q LEFT JOIN professionalSpecialists ps ON if(q.doctor_no IS NOT NULL and q.doctor_no > 0, q.doctor_no = ps.referralNo, COALESCE(LCASE(SUBSTR(ps.fName,1,1)) = LCASE(SUBSTR(if(locate(' ', q.full_name) != 0, SUBSTRING_INDEX(q.full_name, ' ', 1), null),1,1)), true) and LCASE(ps.lName) = LCASE(substring_index(q.full_name, ' ', -1))) GROUP BY 1 HAVING COUNT(*) = 1
+		</ap-sql>
+		<ap-output>${phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>family_doctor_fax</ap-name>
+		<ap-sql>
+			SELECT ps.fax FROM (
+			SELECT ExtractValue(family_doctor_2, '//fdname') AS original_name,
+			ExtractValue(family_doctor_2, '//fd') AS doctor_no,
+			IF(ExtractValue(family_doctor_2, '//rd') regexp '^Dr.', TRIM(substr(ExtractValue(family_doctor_2, '//rd') from 4)), ExtractValue(family_doctor_2, '//fdname') ) as full_name
+			FROM demographic
+			WHERE demographic_no = ${demographic}
+			) as q LEFT JOIN professionalSpecialists ps ON if(q.doctor_no IS NOT NULL and q.doctor_no > 0, q.doctor_no = ps.referralNo, COALESCE(LCASE(SUBSTR(ps.fName,1,1)) = LCASE(SUBSTR(if(locate(' ', q.full_name) != 0, SUBSTRING_INDEX(q.full_name, ' ', 1), null),1,1)), true) and LCASE(ps.lName) = LCASE(substring_index(q.full_name, ' ', -1))) GROUP BY 1 HAVING COUNT(*) = 1
+		</ap-sql>
+		<ap-output>${fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>family_doctor_no</ap-name>
+		<ap-sql>
+			SELECT ps.referralNo FROM (
+			SELECT ExtractValue(family_doctor_2, '//fdname') AS original_name,
+			ExtractValue(family_doctor_2, '//fd') AS doctor_no,
+			IF(ExtractValue(family_doctor_2, '//rd') regexp '^Dr.', TRIM(substr(ExtractValue(family_doctor_2, '//rd') from 4)), ExtractValue(family_doctor_2, '//fdname') ) as full_name
+			FROM demographic
+			WHERE demographic_no = ${demographic}
+			) as q LEFT JOIN professionalSpecialists ps ON if(q.doctor_no IS NOT NULL and q.doctor_no > 0, q.doctor_no = ps.referralNo, COALESCE(LCASE(SUBSTR(ps.fName,1,1)) = LCASE(SUBSTR(if(locate(' ', q.full_name) != 0, SUBSTRING_INDEX(q.full_name, ' ', 1), null),1,1)), true) and LCASE(ps.lName) = LCASE(substring_index(q.full_name, ' ', -1))) GROUP BY 1 HAVING COUNT(*) = 1
+		</ap-sql>
+		<ap-output>${referralNo}</ap-output>
+	</databaseap>
+	<!-- end family doctor -->
+	<!-- BC family doctor -->
+	<databaseap>
+		<ap-name>bc_family_doctor_name</ap-name>
+		<ap-sql>SELECT billingreferral.last_name, billingreferral.first_name
+			FROM billingreferral, demographic
+			WHERE demographic.demographic_no=${demographic}
+			AND LENGTH(billingreferral.referral_no) > 0
+			AND
+			EXTRACTVALUE(demographic.family_doctor_2, '/fd') = billingreferral.referral_no
+		</ap-sql>
+		<ap-output>${last_name}, ${first_name}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_family_doctor_address</ap-name>
+		<ap-sql>SELECT CONCAT( b.address1, IF( b.address1 ='', '', '\n' ),
+			', ', b.city, ', ', b.province, ', ', b.postal ) AS raddress
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND EXTRACTVALUE(d.family_doctor_2, '/fd') = b.referral_no
+		</ap-sql>
+		<ap-output>${raddress}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_family_doctor_phone</ap-name>
+		<ap-sql>SELECT b.phone
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND
+			EXTRACTVALUE(d.family_doctor_2, '/fd') = b.referral_no
+		</ap-sql>
+		<ap-output>${phone}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_family_doctor_fax</ap-name>
+		<ap-sql>SELECT b.fax
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND
+			EXTRACTVALUE(d.family_doctor_2, '/fd') = b.referral_no
+		</ap-sql>
+		<ap-output>${fax}</ap-output>
+	</databaseap>
+	<databaseap>
+		<ap-name>bc_family_doctor_no</ap-name>
+		<ap-sql>SELECT b.referral_no
+			FROM billingreferral b, demographic d
+			WHERE d.demographic_no=${demographic}
+			AND LENGTH(b.referral_no) > 0
+			AND
+			EXTRACTVALUE(d.family_doctor_2, '/fd') = b.referral_no
+		</ap-sql>
+		<ap-output>${referral_no}</ap-output>
+	</databaseap>
+	<!-- end BC family doctor -->
+	<!-- Roster Status -->
+	<databaseap>
+		<ap-name>roster_status</ap-name>
+		<ap-sql>
+			SELECT d.roster_status
+			FROM demographic d
+			WHERE d.demographic_no=${demographic}
+		</ap-sql>
+		<ap-output>${roster_status}</ap-output>
+	</databaseap>
+	<!-- end Roster Status -->
+</eformap-config>

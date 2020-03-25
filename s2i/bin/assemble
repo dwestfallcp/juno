@@ -14,16 +14,10 @@ if [[ "$1" == "-h" ]]; then
 	exec /usr/libexec/s2i/usage
 fi
 
-# Restore artifacts from the previous build (if they exist).
-#
-if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
-  echo "---> Restoring build artifacts..."
-  mv /tmp/artifacts/. ./
-fi
-
-echo "---> Installing application source..."
-cp -Rf /tmp/src/. ./
-
-echo "---> Downloading dependencies..."
-/opt/juno/build.sh
+JOB_NAME="Juno"
+BUILD_NUMBER="`date +\%s`"
+export JOB_NAME BUILD_NUMBER
+CATALINA_HOME=/usr/share/tomcat
+rm -rf target
+mvn process-resources -Dmaven.test.skip=true verify $1
 

@@ -1,0 +1,49 @@
+.summary-section {
+
+	#summary-section-left{
+		margin-bottom: $margin-md;
+	}
+	#summary-section-right{
+		margin-bottom: $margin-lg;
+	}
+	.module-list {
+		border-bottom: 1px solid;
+		border-bottom-color: $color-neutral-lighter;
+	}
+
+	.summary-tabs {
+		@include juno-tab-md($page-tabs-height-alt);
+		@include juno-tab-color-scheme-white(4px);
+	}
+	#note-list-filters {
+		margin-bottom: $margin-sm;
+	}
+	#FlowSheetCustomActionForm {
+		margin-bottom: 20px;
+	}
+}
+
+.notesModal {
+	.modal-content {
+		background-color: $color-primary-base;
+	}
+	.modal-body {
+		background-color: $color-neutral-white;
+	}
+	.modal-header {
+		color: $color-neutral-white;
+	}
+	.modal-footer {
+		background-color: $color-neutral-lighter;
+		padding-top: 20px;
+		padding-bottom: 20px;
+	}
+}
+
+@media (max-width: $screen-sm) {
+	.summary-section {
+		.note-list {
+			margin-top: $margin-md;
+		}
+	}
+}
