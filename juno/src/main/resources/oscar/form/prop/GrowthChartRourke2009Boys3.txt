@@ -1,2 +1,0 @@
-c_pName	: left, 404, 63, 0, BaseFont.HELVETICA, 8
-c_birthDate : left, 404, 77, 0, BaseFont.HELVETICA, 8
