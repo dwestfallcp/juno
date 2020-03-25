@@ -24,7 +24,7 @@ fi
 echo "---> Installing application source..."
 cp -Rf /tmp/src/. ./
 
-
+cd ./juno
 JOB_NAME="Juno"
 BUILD_NUMBER="`date +\%s`"
 export JOB_NAME BUILD_NUMBER
