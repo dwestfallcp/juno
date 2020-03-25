@@ -13,7 +13,7 @@
     "@types/angular-ui-bootstrap": "^0.13.46",
     "@types/angular-ui-router": "^1.1.40",
     "bootstrap-datepicker": "^1.8.0",
-    "bower": "^1.8.0",
+    "bower": "^1.8.8",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.11",
