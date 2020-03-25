@@ -10,7 +10,6 @@ spec:
     git:
       ref: master
       uri: https://github.com/dwestfallcp/juno.git
-    contextDir: juno
   strategy:
     type: Docker
     dockerStrategy:
