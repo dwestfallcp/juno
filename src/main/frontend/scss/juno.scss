@@ -1,0 +1,74 @@
+// Less Variables
+@import "variables";
+@import "colorPalette";
+@import "imageVariables";
+@import "mixins/junoFonts";
+@import "mixins/junoSelect";
+@import "mixins/junoTab";
+@import "mixins/junoTable";
+@import "mixins/junoPageSizing";
+// Custom Bootstrap
+@import "bootstrap/bootstrap_variables";
+@import "../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+@import "bootstrap/dropdown";
+@import "bootstrap/badges";
+// UIB overrides
+@import "directives/uib-datepicker";
+// bootstrap-timepicker does not provide a CSS file so compile as SCSS
+@import "bootstrap-timepicker/timepicker";
+// Global stuff
+@import "global";
+// TODO: pre-existing CSS files, need to be reorganized
+@import "navbar-fixed-top";
+@import "forms";
+@import "buttons";
+@import "index";
+@import "directives/date_picker";
+@import "directives/time_picker";
+@import "directives/juno-toggle";
+@import "directives/juno-checkbox";
+@import "directives/juno-radio";
+@import "directives/juno-select";
+@import "directives/juno-typeahead";
+@import "../src/common/directives/clinicaid/ca_field";
+@import "../src/common/components/junoLoadingIndicator";
+@import "../src/common/components/modal";
+@import "../src/common/components/zeroStateDisplay";
+@import "../src/common/components/accordionList/accordionList";
+@import "../src/common/components/iconCard/iconCard";
+@import "../src/common/components/panel/_panel.scss";
+// Section-specific things
+@import "../src/layout/primaryNav";
+@import "../src/layout/leftAside";
+@import "../src/help/support";
+@import "../src/schedule/schedule";
+@import "../src/schedule/eventModal";
+@import "../src/schedule/scheduleSearchModal";
+@import "../src/dashboard/dashboard";
+@import "../src/patient/addDemographicModal/addDemographicModal";
+@import "../src/patient/demographicCard";
+@import "../src/patient/search/patientSearch";
+@import "../src/report/reports";
+@import "../src/record/record";
+@import "../src/record/details/details";
+@import "../src/record/details/swipecard";
+@import "../src/record/summary/summary";
+@import "../src/record/summary/summaryModule";
+@import "../src/record/summary/encounterNoteList";
+@import "../src/settings/settings";
+@import "../src/tickler/tickler";
+@import "../src/consults/consults";
+@import "../src/admin/integration/know2act/Know2act";
+@import "../src/admin/integration/fax/fax";
+@import "../src/admin/integration/landingPage/landingPage";
+@import "../src/admin/integration/integrationModules/integrationModules";
+@import "../src/admin/integration/panelManagement/panelManagement";
+@import "../src/admin/integration/iceFall/iceFall";
+@import "../src/admin/integration/iceFall/settings/iceFallAdminSettings";
+@import "../src/admin/integration/iceFall/activity/iceFallAdminActivity";
+@import "../src/admin/admin";
+@import "../src/admin/integration/frameContent/frameContent";
+@import "../src/record/forms/forms";
+@import "../src/record/forms/components/groupSelector/groupSelector";
+@import "../src/record/forms/components/modeSelector/modeSelector";
+@import "../src/record/forms/components/formView/formView";

@@ -1,0 +1,13 @@
+.form-group {
+	.required-field-marker {
+		color: $color-red-base;
+	}
+
+	select.form-control{
+		background-color: white;
+
+		&.select:focus {
+			background-color: white;
+		}
+	}
+}

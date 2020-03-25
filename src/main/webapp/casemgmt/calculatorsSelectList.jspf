@@ -1,0 +1,52 @@
+<%@ page import="org.oscarehr.eform.model.EForm" %><%
+	EFormDao eformDao = SpringUtils.getBean(EFormDao.class);
+	List<EForm> eforms = eformDao.findByNameSimilar("Framingham");
+						
+	Integer framinghamFid = null;
+	if( !eforms.isEmpty() ) {
+	   framinghamFid = eforms.get(eforms.size()-1).getId();
+	}
+						
+	Integer ukpdsFid = null;
+	eforms = eformDao.findByNameSimilar("UKPDS");
+	if( !eforms.isEmpty() ) {
+	   ukpdsFid = eforms.get(eforms.size()-1).getId();
+	}
+%>
+
+
+  <select id='calculators_menu' style="width:100px;">
+	<option selected="selected" disabled="disabled" value="none"><bean:message key="oscarEncounter.Header.Calculators"/></option>
+	
+	<option value='http://www.mcw.edu/calculators/body-mass-index.htm' x_size='650' y_size='775'>
+		<bean:message key="oscarEncounter.Index.bodyMass" />
+	</option>
+	
+	<option value='../oscarEncounter/calculators/CoronaryArteryDiseaseRiskPrediction.jsp?sex=<%=bean.patientSex%>&age=<%=pAge%>' x_size='525' y_size='775'>
+		<bean:message key="oscarEncounter.Index.coronary" />
+	</option>
+	
+	<option value='../oscarEncounter/calculators/riskcalc/index.html?sex=<%=bean.patientSex%>&age=<%=pAge%>' x_size='525' y_size='775'>
+		Framingham/UKPDS Risk Calculator
+	</option>
+	
+	<option value='http://cvrisk.mvm.ed.ac.uk/calculator/calc.asp' x_size='525' y_size='775'>
+		CV Risk
+	</option>
+	
+	<option value='../oscarEncounter/calculators/OsteoporoticFracture.jsp?sex=<%=bean.patientSex%>&age=<%=pAge%>' x_size='525' y_size='775'>
+		<bean:message key="oscarEncounter.Index.msgOsteoporotic" />
+	</option>
+	
+	<option value='http://www.mcw.edu/calculators/pregnancydate.htm' x_size='650' y_size='775'>
+		<bean:message key="oscarEncounter.Index.pregnancy" />
+	</option>
+	
+	<option value='../oscarEncounter/calculators/SimpleCalculator.jsp' x_size='400' y_size='500'>
+		<bean:message key="oscarEncounter.Index.simpleCalculator" />
+	</option>
+	
+	<option value='../oscarEncounter/calculators/GeneralCalculators.jsp' x_size='650' y_size='775'>
+		<bean:message key="oscarEncounter.Index.generalConversions" />
+	</option>
+</select>
