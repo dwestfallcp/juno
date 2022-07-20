@@ -9,7 +9,7 @@
     "build_prod": "webpack --config webpack.prod.js"
   },
   "devDependencies": {
-    "@types/angular": "^1.6.45",
+    "@types/angular": "^1.8.4",
     "@types/angular-ui-bootstrap": "^0.13.46",
     "@types/angular-ui-router": "^1.1.40",
     "bootstrap-datepicker": "^1.8.0",
@@ -43,7 +43,7 @@
     "webpack-merge": "^4.1.2"
   },
   "dependencies": {
-    "angular": "~1.6.0",
+    "angular": "~1.8.3",
     "angular-loading-bar": "^0.9.0",
     "angular-resource": "~1.6.0",
     "angular-ui-bootstrap": "^2.5.0",
